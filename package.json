@@ -1,0 +1,26 @@
+{
+  "name": "utik",
+  "version": "0.0.1",
+  "description": "Unique collection of utility functions; adds on to others, doesn't replace them.",
+  "main": "dist/main.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samuelneff/utik.git"
+  },
+  "keywords": [
+    "utility",
+    "functions",
+    "lodash",
+    "underscore",
+    "ramda"
+  ],
+  "author": "Samuel Neff <sam@serndesign.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/samuelneff/utik/issues"
+  },
+  "homepage": "https://github.com/samuelneff/utik#readme"
+}
