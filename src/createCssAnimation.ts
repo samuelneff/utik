@@ -1,11 +1,18 @@
 import { CSSProperties } from 'preact/compat';
-import { cond, kebabCase } from 'lodash';
+import { kebabCase } from 'lodash';
 import { isCssLengthProperty } from './isCssLengthProperty';
 import { px } from './px';
+import { createElementWithAttributes } from './createElementWithAttributes';
 
 export type KeyframeMap = Map<string, CSSProperties>;
 
-const keyframesCache = new Map<string, string>();
+interface CachedAnimation {
+  name: string;
+  cssText: string;
+}
+
+const keyframesCache = new Map<string, CachedAnimation>();
+const animationStylesId = 'create-css-animations';
 
 export function createCssAnimation(...frames: CSSProperties[]): string;
 export function createCssAnimation(frames: KeyframeMap): string;
@@ -40,16 +47,21 @@ export function createCssAnimation(
   const cacheKey = `${ prefix } :: ${ framesText }`;
   const cached = keyframesCache.get(cacheKey);
   if (cached) {
-    return cached;
+    return cached.name;
   }
 
   const name = `${ prefix }${ prefix ? '_' : '' }anim_${ keyframesCache.size + 1 }`;
-  const fullCssText = `@keyframes ${ name } {\n${ framesText }}`;
-  const el = document.createElement('style');
-  el.id = name;
-  el.innerHTML = fullCssText;
-  document.head.appendChild(el);
-  keyframesCache.set(cacheKey, name);
+  const cssText = `@keyframes ${ name } {\n${ framesText }}`;
+  keyframesCache.set(
+    cacheKey,
+    {
+      name,
+      cssText,
+    }
+  );
+
+  updateAnimationsInDocument();
+
   return name;
 }
 
@@ -90,4 +102,17 @@ function createKeyframe([ label, style ]: [ string, CSSProperties ], condense: b
 function createStyleProperty([ property, value ]: [ string, unknown ]) {
   const valueText = isCssLengthProperty(property) ? px(value) : value;
   return `${ kebabCase(property) }: ${ valueText };`;
+}
+
+function updateAnimationsInDocument() {
+
+  const el = document.querySelector(`#${ animationStylesId }`) ??
+    createElementWithAttributes('style', { id: animationStylesId });
+
+  // @ts-ignore symlink issue causing vscode not to apply tsconfig correctly, thinks spread of map not possible without downloevel iteration
+  el.innerHTML = [ ...keyframesCache.entries() ].map(
+    ([ _key, { cssText } ]) => cssText
+  ).join('\n\n');
+
+  document.head.appendChild(el);
 }
